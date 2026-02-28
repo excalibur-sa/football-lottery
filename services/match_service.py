@@ -4,9 +4,9 @@ class MatchService:
     def __init__(self, data_provider):
         self.provider = data_provider
 
-    def get_today_matches(self):
-        """获取今日竞彩比赛列表，按时间排序"""
-        matches = self.provider.get_today_matches()
+    def get_today_matches(self, date=None):
+        """获取竞彩比赛列表，按时间排序"""
+        matches = self.provider.get_today_matches(date=date)
         matches.sort(key=lambda m: m.get("match_time", ""))
         return matches
 

@@ -38,18 +38,26 @@ class SportteryProvider(BaseDataProvider):
         except requests.RequestException as e:
             raise RuntimeError(f"网络请求失败: {e}")
 
-    def get_today_matches(self):
-        """获取今日竞彩比赛列表
+    def get_today_matches(self, date=None):
+        """获取竞彩比赛列表
         
-        优先获取当前可售的比赛，如果没有则获取最近的历史赛果
+        Args:
+            date: 可选，指定日期(YYYY-MM-DD)。为None时优先获取可售比赛，否则获取指定日期赛果
         """
-        # 首先尝试获取当前可售比赛
-        matches = self._get_selling_matches()
-        if matches:
-            return matches
+        if date is None:
+            # 无指定日期：优先获取当前可售比赛
+            matches = self._get_selling_matches()
+            if matches:
+                return matches
+            return self._get_recent_results()
         
-        # 如果没有可售比赛，获取最近的历史赛果
-        return self._get_recent_results()
+        # 指定日期：先尝试可售比赛中过滤，再查历史赛果
+        selling = self._get_selling_matches()
+        date_matches = [m for m in selling if m.get("match_time", "").startswith(date)]
+        if date_matches:
+            return date_matches
+        
+        return self._get_results_by_date(date)
 
     def _get_selling_matches(self):
         """获取当前正在销售的比赛"""
@@ -79,7 +87,14 @@ class SportteryProvider(BaseDataProvider):
         # 查询最近14天的赛果（扩大范围以获取更多历史数据）
         end_date = today.strftime('%Y-%m-%d')
         start_date = (today - timedelta(days=14)).strftime('%Y-%m-%d')
-        
+        return self._query_results(start_date, end_date)
+
+    def _get_results_by_date(self, date):
+        """获取指定日期的历史赛果"""
+        return self._query_results(date, date)
+
+    def _query_results(self, start_date, end_date):
+        """查询指定日期范围内的历史赛果"""
         try:
             result = self._request(
                 "/uniform/football/getUniformMatchResultV1.qry",

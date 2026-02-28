@@ -5,8 +5,11 @@ class BaseDataProvider(ABC):
     """竞彩足球数据提供者抽象基类"""
 
     @abstractmethod
-    def get_today_matches(self):
-        """获取今日竞彩比赛列表
+    def get_today_matches(self, date=None):
+        """获取竞彩比赛列表
+
+        Args:
+            date: 可选，指定日期字符串(YYYY-MM-DD)，为None时获取当前可售比赛
 
         Returns:
             list[dict]: 比赛基本信息列表，每个元素包含:

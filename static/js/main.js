@@ -1,9 +1,11 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // 显示当前日期
+    // 设置日期控件默认值为当天
     const now = new Date();
     const dateStr = now.getFullYear() + '-' +
         String(now.getMonth() + 1).padStart(2, '0') + '-' +
         String(now.getDate()).padStart(2, '0');
+    const dateInput = document.getElementById('match-date');
+    dateInput.value = dateStr;
     document.getElementById('current-date').textContent = dateStr;
 
     const selectedIds = new Set();
@@ -11,9 +13,37 @@ document.addEventListener('DOMContentLoaded', function () {
 
     loadMatches();
 
+    // 重新生成按钮
+    document.getElementById('btn-reload').addEventListener('click', function () {
+        const date = dateInput.value;
+        if (!date) {
+            showError('请选择日期');
+            return;
+        }
+        document.getElementById('current-date').textContent = date;
+        selectedIds.clear();
+        allSelectMode = false;
+        const selectAllBtn = document.getElementById('btn-select-all');
+        if (selectAllBtn) selectAllBtn.textContent = '全选';
+        const checkAll = document.getElementById('check-all');
+        if (checkAll) checkAll.checked = false;
+        loadMatches(date);
+    });
+
     // 加载比赛列表
-    function loadMatches() {
-        fetch('/api/matches')
+    function loadMatches(date) {
+        // 重置UI状态
+        document.getElementById('match-table-wrapper').classList.add('d-none');
+        document.getElementById('no-data').classList.add('d-none');
+        document.getElementById('error-area').classList.add('d-none');
+        document.getElementById('loading').classList.remove('d-none');
+
+        var url = '/api/matches';
+        if (date) {
+            url += '?date=' + encodeURIComponent(date);
+        }
+
+        fetch(url)
             .then(r => r.json())
             .then(data => {
                 document.getElementById('loading').classList.add('d-none');
@@ -46,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function () {
             tr.dataset.matchId = m.match_id;
             tr.innerHTML =
                 '<td><input type="checkbox" class="form-check-input match-check" data-id="' + m.match_id + '"></td>' +
-                '<td>' + escapeHtml(m.match_time.split(' ')[1] || m.match_time) + '</td>' +
+                '<td>' + escapeHtml(m.match_time ? m.match_time.slice(0, 16) : '') + '</td>' +
                 '<td><span class="badge bg-info text-dark">' + escapeHtml(m.league) + '</span></td>' +
                 '<td class="fw-bold text-end">' + escapeHtml(m.home_team) + '</td>' +
                 '<td class="text-center text-muted">vs</td>' +
@@ -153,9 +183,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderOddsDetail(m) {
         const had = m.had_odds || {};
         const hhad = m.hhad_odds || {};
-        const ttg = m.ttg_odds || {};
-        const hafu = m.hafu_odds || {};
-        const crs = m.crs_odds || {};
+        
         const hadHistory = m.had_history || [];
         const hhadHistory = m.hhad_history || [];
 
@@ -206,63 +234,221 @@ document.addEventListener('DOMContentLoaded', function () {
             html += '</tbody></table></div></div>';
         }
 
-        // 总进球
-        if (Object.keys(ttg).length > 0) {
-            html += '<div class="col-md-6 mb-3">' +
-                '<h6 class="section-title">总进球赔率</h6>' +
-                '<table class="table table-sm table-bordered mb-0">' +
-                '<thead><tr class="table-primary"><th>进球数</th><th>赔率</th></tr></thead><tbody>';
-            Object.keys(ttg).sort().forEach(function (k) {
-                html += '<tr><td>' + escapeHtml(k) + '球</td><td>' + fmt(ttg[k]) + '</td></tr>';
-            });
-            html += '</tbody></table></div>';
-        }
+        // 赔率差值分析
+        if (hadHistory.length >= 2 && hhadHistory.length >= 1) {
+            var baseWin = hadHistory[0].win || 0;
+            var baseLose = hadHistory[0].lose || 0;
+            var lastHadDraw = hadHistory[hadHistory.length - 1].draw || 0;
 
-        // 半全场
-        if (Object.keys(hafu).length > 0) {
-            const hafuLabels = {
-                'win_win': '胜-胜', 'win_draw': '胜-平', 'win_lose': '胜-负',
-                'draw_win': '平-胜', 'draw_draw': '平-平', 'draw_lose': '平-负',
-                'lose_win': '负-胜', 'lose_draw': '负-平', 'lose_lose': '负-负'
-            };
-            html += '<div class="col-md-6 mb-3">' +
-                '<h6 class="section-title">半全场赔率</h6>' +
-                '<table class="table table-sm table-bordered mb-0">' +
-                '<thead><tr class="table-primary"><th>半场-全场</th><th>赔率</th></tr></thead><tbody>';
-            Object.keys(hafu).forEach(function (k) {
-                html += '<tr><td>' + escapeHtml(hafuLabels[k] || k) + '</td><td>' + fmt(hafu[k]) + '</td></tr>';
-            });
-            html += '</tbody></table></div>';
-        }
-
-        // 比分
-        if (Object.keys(crs).length > 0) {
-            // 分组：主胜、平局、客胜
-            const homeWin = [], draws = [], awayWin = [];
-            Object.keys(crs).forEach(function (score) {
-                const parts = score.split(':');
-                if (parts.length === 2) {
-                    const h = parseInt(parts[0]), a = parseInt(parts[1]);
-                    if (h > a) homeWin.push([score, crs[score]]);
-                    else if (h === a) draws.push([score, crs[score]]);
-                    else awayWin.push([score, crs[score]]);
+            // 时间差计算函数（秒）
+            function timeDiffSeconds(t1, t2) {
+                try {
+                    var parseTime = function(t) {
+                        var parts = t.split(' ');
+                        var time = parts.length > 1 ? parts[1] : t;
+                        var hms = time.split(':');
+                        return parseInt(hms[0]) * 3600 + parseInt(hms[1]) * 60 + parseInt(hms[2]);
+                    };
+                    return Math.abs(parseTime(t1) - parseTime(t2));
+                } catch (e) {
+                    return Infinity;
                 }
-            });
+            }
+
+            // 查找时间匹配的HAD记录
+            function findMatchingHad(hhadItem, hadList, tolerance) {
+                tolerance = tolerance || 300;
+                var hhadDate = hhadItem.update_date || '';
+                var hhadTime = hhadItem.update_time || '';
+                var bestMatch = null;
+                var bestDiff = Infinity;
+                for (var i = 0; i < hadList.length; i++) {
+                    var had = hadList[i];
+                    if ((had.update_date || '') !== hhadDate) continue;
+                    var diff = timeDiffSeconds(had.update_time || '', hhadTime);
+                    if (diff < bestDiff && diff <= tolerance) {
+                        bestDiff = diff;
+                        bestMatch = i;
+                    }
+                }
+                return bestMatch;
+            }
+
+            var usedHadForWl = {};  // 记录已用于胜/负差的HAD索引
+            var hadDdCovered = {};  // 记录已在HHAD循环中计算了双平差的HAD索引
+            var totalRows = hhadHistory.length;
+
             html += '<div class="col-12 mb-3">' +
-                '<h6 class="section-title">比分赔率</h6>' +
-                '<div class="row">';
+                '<h6 class="section-title">赔率差值分析</h6>' +
+                '<div style="max-height: 200px; overflow-y: auto;">' +
+                '<table class="table table-sm table-bordered mb-0 table-striped">' +
+                '<thead class="sticky-top bg-white"><tr class="table-warning">' +
+                '<th>胜的赔率的差</th><th>负的赔率的差</th><th>双平赔率的差</th>' +
+                '<th>胜差正负</th><th>负差正负</th><th>双平差正负</th></tr></thead><tbody>';
 
-            [['主胜', homeWin], ['平局', draws], ['客胜', awayWin]].forEach(function (group) {
-                html += '<div class="col-md-4"><table class="table table-sm table-bordered mb-0">' +
-                    '<thead><tr class="table-primary"><th colspan="2">' + group[0] + '</th></tr>' +
-                    '<tr class="table-light"><th>比分</th><th>赔率</th></tr></thead><tbody>';
-                group[1].sort().forEach(function (item) {
-                    html += '<tr><td>' + escapeHtml(item[0]) + '</td><td>' + fmt(item[1]) + '</td></tr>';
-                });
-                html += '</tbody></table></div>';
-            });
+            for (var r = 0; r < totalRows; r++) {
+                var winDiff, loseDiff, winSign, loseSign;
+                var curHadDraw, curHhadDraw;
 
-            html += '</div></div>';
+                if (r === 0) {
+                    // 第1行特殊对齐：胜/负差取 hadHistory[1]，双平差取 hadHistory[0]/hhadHistory[0]
+                    if (hadHistory.length >= 2) {
+                        var curWin = hadHistory[1].win || 0;
+                        var curLose = hadHistory[1].lose || 0;
+                        winDiff = Math.round((curWin - baseWin) * 100) / 100;
+                        loseDiff = Math.round((curLose - baseLose) * 100) / 100;
+                        winSign = winDiff >= 0 ? '正' : '负';
+                        loseSign = loseDiff >= 0 ? '正' : '负';
+                        usedHadForWl[1] = true;
+                    } else {
+                        winDiff = '-';
+                        loseDiff = '-';
+                        winSign = '-';
+                        loseSign = '-';
+                    }
+                    curHadDraw = hadHistory[0].draw || 0;
+                    curHhadDraw = hhadHistory[0].draw || 0;
+                    hadDdCovered[0] = true;  // HAD[0]的draw已用于双平差
+                } else {
+                    // 后续行：按时间戳匹配
+                    var matchedHadIdx = findMatchingHad(hhadHistory[r], hadHistory);
+
+                    if (matchedHadIdx !== null && !usedHadForWl[matchedHadIdx]) {
+                        // 找到匹配且未使用过
+                        var curWin = hadHistory[matchedHadIdx].win || 0;
+                        var curLose = hadHistory[matchedHadIdx].lose || 0;
+                        winDiff = Math.round((curWin - baseWin) * 100) / 100;
+                        loseDiff = Math.round((curLose - baseLose) * 100) / 100;
+                        winSign = winDiff >= 0 ? '正' : '负';
+                        loseSign = loseDiff >= 0 ? '正' : '负';
+                        usedHadForWl[matchedHadIdx] = true;
+                        curHadDraw = hadHistory[matchedHadIdx].draw || 0;
+                        hadDdCovered[matchedHadIdx] = true;
+                    } else {
+                        // 无匹配或已使用
+                        winDiff = '-';
+                        loseDiff = '-';
+                        winSign = '-';
+                        loseSign = '-';
+                        if (matchedHadIdx !== null) {
+                            curHadDraw = hadHistory[matchedHadIdx].draw || 0;
+                            hadDdCovered[matchedHadIdx] = true;
+                        } else {
+                            curHadDraw = lastHadDraw;
+                        }
+                    }
+                    curHhadDraw = hhadHistory[r].draw || 0;
+                }
+
+                var ddDiff = Math.round((curHhadDraw - curHadDraw) * 100) / 100;
+                var ddSign = ddDiff >= 0 ? '正' : '负';
+
+                var winClass = (winDiff !== '-' && winDiff < 0) ? ' class="text-danger"' : '';
+                var loseClass = (loseDiff !== '-' && loseDiff < 0) ? ' class="text-danger"' : '';
+                var ddClass = ddDiff < 0 ? ' class="text-danger"' : '';
+
+                html += '<tr>' +
+                    '<td' + winClass + '>' + (winDiff === '-' ? '-' : winDiff.toFixed(2)) + '</td>' +
+                    '<td' + loseClass + '>' + (loseDiff === '-' ? '-' : loseDiff.toFixed(2)) + '</td>' +
+                    '<td' + ddClass + '>' + ddDiff.toFixed(2) + '</td>' +
+                    '<td>' + winSign + '</td>' +
+                    '<td>' + loseSign + '</td>' +
+                    '<td>' + ddSign + '</td></tr>';
+            }
+
+            // 补充未完整覆盖的HAD记录
+            for (var hadIdx = 1; hadIdx < hadHistory.length; hadIdx++) {
+                // 已在HHAD循环中同时覆盖了胜/负差和双平差的，跳过
+                if (usedHadForWl[hadIdx] && hadDdCovered[hadIdx]) continue;
+                
+                var winDiff2, loseDiff2, winSign2, loseSign2, winClass2, loseClass2;
+                
+                if (usedHadForWl[hadIdx]) {
+                    // 胜/负差已在HHAD循环显示，仅需双平差独占一行
+                    winDiff2 = '-';
+                    loseDiff2 = '-';
+                    winSign2 = '-';
+                    loseSign2 = '-';
+                    winClass2 = '';
+                    loseClass2 = '';
+                } else {
+                    // 完整行：胜/负差 + 双平差
+                    var curWin = hadHistory[hadIdx].win || 0;
+                    var curLose = hadHistory[hadIdx].lose || 0;
+                    winDiff2 = Math.round((curWin - baseWin) * 100) / 100;
+                    loseDiff2 = Math.round((curLose - baseLose) * 100) / 100;
+                    winSign2 = winDiff2 >= 0 ? '正' : '负';
+                    loseSign2 = loseDiff2 >= 0 ? '正' : '负';
+                    winClass2 = winDiff2 < 0 ? ' class="text-danger"' : '';
+                    loseClass2 = loseDiff2 < 0 ? ' class="text-danger"' : '';
+                }
+                
+                // 向前查找最近的HHAD让平赔率
+                var hadDateStr = (hadHistory[hadIdx].update_date || '') + ' ' + (hadHistory[hadIdx].update_time || '');
+                var nearestHhadDraw = null;
+                try {
+                    var hadDt = new Date(hadDateStr.replace(/-/g, '/'));
+                    var bestDt = null;
+                    for (var hi = 0; hi < hhadHistory.length; hi++) {
+                        var hhadDateStr = (hhadHistory[hi].update_date || '') + ' ' + (hhadHistory[hi].update_time || '');
+                        var hhadDt = new Date(hhadDateStr.replace(/-/g, '/'));
+                        if (hhadDt <= hadDt) {
+                            if (bestDt === null || hhadDt > bestDt) {
+                                bestDt = hhadDt;
+                                nearestHhadDraw = hhadHistory[hi].draw || 0;
+                            }
+                        }
+                    }
+                } catch (e) {}
+                
+                var ddDiffStr, ddSignStr, ddClassStr;
+                if (nearestHhadDraw !== null) {
+                    var ddDiff2 = Math.round((nearestHhadDraw - (hadHistory[hadIdx].draw || 0)) * 100) / 100;
+                    ddDiffStr = ddDiff2.toFixed(2);
+                    ddSignStr = ddDiff2 >= 0 ? '正' : '负';
+                    ddClassStr = ddDiff2 < 0 ? ' class="text-danger"' : '';
+                } else {
+                    ddDiffStr = '-';
+                    ddSignStr = '-';
+                    ddClassStr = '';
+                }
+                
+                html += '<tr>' +
+                    '<td' + winClass2 + '>' + (winDiff2 === '-' ? '-' : winDiff2.toFixed(2)) + '</td>' +
+                    '<td' + loseClass2 + '>' + (loseDiff2 === '-' ? '-' : loseDiff2.toFixed(2)) + '</td>' +
+                    '<td' + ddClassStr + '>' + ddDiffStr + '</td>' +
+                    '<td>' + winSign2 + '</td>' +
+                    '<td>' + loseSign2 + '</td>' +
+                    '<td>' + ddSignStr + '</td></tr>';
+            }
+
+            html += '</tbody></table></div></div>';
+        } else if (hhadHistory.length >= 2) {
+            // 无HAD更新，仅用HHAD让平数据做差：HHAD[i].draw - HHAD[0].draw
+            var baseHhadDraw = hhadHistory[0].draw || 0;
+            
+            html += '<div class="col-12 mb-3">' +
+                '<h6 class="section-title">赔率差值分析</h6>' +
+                '<div style="max-height: 200px; overflow-y: auto;">' +
+                '<table class="table table-sm table-bordered mb-0 table-striped">' +
+                '<thead class="sticky-top bg-white"><tr class="table-warning">' +
+                '<th>胜的赔率的差</th><th>负的赔率的差</th><th>双平赔率的差</th>' +
+                '<th>胜差正负</th><th>负差正负</th><th>双平差正负</th></tr></thead><tbody>';
+            
+            for (var hi = 1; hi < hhadHistory.length; hi++) {
+                var curDraw = hhadHistory[hi].draw || 0;
+                var drawDiff = Math.round((curDraw - baseHhadDraw) * 100) / 100;
+                var ddSign = drawDiff >= 0 ? '正' : '负';
+                var ddClass = drawDiff < 0 ? ' class="text-danger"' : '';
+                
+                html += '<tr>' +
+                    '<td>-</td><td>-</td>' +
+                    '<td' + ddClass + '>' + drawDiff.toFixed(2) + '</td>' +
+                    '<td>-</td><td>-</td>' +
+                    '<td>' + ddSign + '</td></tr>';
+            }
+            
+            html += '</tbody></table></div></div>';
         }
 
         html += '</div>';

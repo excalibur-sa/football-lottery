@@ -19,7 +19,8 @@ def index():
 @app.route('/api/matches')
 def api_matches():
     try:
-        matches = match_service.get_today_matches()
+        date = request.args.get('date')  # 可选日期参数 YYYY-MM-DD
+        matches = match_service.get_today_matches(date=date)
         return jsonify({"success": True, "count": len(matches), "matches": matches})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
