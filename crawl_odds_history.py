@@ -166,7 +166,7 @@ def main():
             had_list = bonus_data.get('hadList', [])
             if had_list:
                 print(f"\n【胜平负固定奖金历史】共 {len(had_list)} 条记录")
-                print(f"{"更新日期":<12} {"更新时间":<12} {"胜":>8} {"平":>8} {"负":>8}")
+                print(f"{'\u66f4\u65b0\u65e5\u671f':<12} {'\u66f4\u65b0\u65f6\u95f4':<12} {'\u80dc':>8} {'\u5e73':>8} {'\u8d1f':>8}")
                 for item in had_list:
                     update_dt = f"{item.get('updateDate', '')} {item.get('updateTime', '')}"
                     print(f"{item.get('updateDate', ''):<12} {item.get('updateTime', ''):<12} {item.get('h', ''):>8} {item.get('d', ''):>8} {item.get('a', ''):>8}")
@@ -177,7 +177,7 @@ def main():
             if hhad_list:
                 first_goal = hhad_list[0].get('goalLine', goal_line) if hhad_list else goal_line
                 print(f"\n【让球胜平负固定奖金历史】让球: {first_goal}，共 {len(hhad_list)} 条记录")
-                print(f"{"更新日期":<12} {"更新时间":<12} {"让胜":>8} {"让平":>8} {"让负":>8}")
+                print(f"{'\u66f4\u65b0\u65e5\u671f':<12} {'\u66f4\u65b0\u65f6\u95f4':<12} {'\u8ba9\u80dc':>8} {'\u8ba9\u5e73':>8} {'\u8ba9\u8d1f':>8}")
                 for item in hhad_list:
                     print(f"{item.get('updateDate', ''):<12} {item.get('updateTime', ''):<12} {item.get('h', ''):>8} {item.get('d', ''):>8} {item.get('a', ''):>8}")
                 match_result['让球胜平负历史'] = parse_hhad_odds(hhad_list)
