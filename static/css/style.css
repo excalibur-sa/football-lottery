@@ -1,0 +1,56 @@
+.match-row {
+    cursor: default;
+}
+
+.match-row:hover {
+    background-color: #f0f4ff;
+}
+
+.detail-row {
+    background-color: #fafbff;
+}
+
+.detail-row td {
+    padding: 0 !important;
+    border-top: none !important;
+}
+
+.section-title {
+    color: #1a56db;
+    border-left: 3px solid #1a56db;
+    padding-left: 8px;
+    margin-bottom: 8px;
+}
+
+.table-primary th {
+    background-color: #4472c4 !important;
+    color: white !important;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.table-bordered td,
+.table-bordered th {
+    text-align: center;
+    vertical-align: middle;
+}
+
+#match-table thead th {
+    background-color: #2c5282;
+    color: white;
+    border-color: #2c5282;
+    font-size: 0.9rem;
+}
+
+.badge.bg-info {
+    font-size: 0.8rem;
+}
+
+.navbar-brand {
+    font-size: 1.3rem;
+    letter-spacing: 1px;
+}
+
+.toast {
+    min-width: 300px;
+}
