@@ -277,8 +277,11 @@ def _write_detail_sheet(wb, match, index):
     had_history = match.get("had_history", [])
     hhad_history = match.get("hhad_history", [])
     
-    # 需要HAD有更新(>=2条)且有让球数据，或仅让球有更新(>=2条)
-    if len(had_history) >= 2 and len(hhad_history) >= 1:
+    # 判断是否有胜平负指数更新：HAD历史非空即有更新
+    has_had_update = len(had_history) >= 1
+    
+    # 需要有让球更新(>=2条)才能计算赔率差
+    if len(hhad_history) >= 2 and has_had_update:
         ws.cell(row=row, column=1, value="赔率差值分析").font = SECTION_FONT
         ws.cell(row=row, column=1).fill = SECTION_FILL
         ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=6)
@@ -337,10 +340,11 @@ def _write_detail_sheet(wb, match, index):
         
         # 对齐规则：
         # 第1行(r=0): 胜/负差取 HAD[1]，双平差取 HAD[0]/HHAD[0]（保持特殊对齐）
-        # 后续行: 按时间戳匹配HAD和HHAD，无匹配的HHAD单独成行
+        # 后续行: 按时间戳匹配HAD和HHAD，无匹配时使用最近的HAD平数据
         last_had_draw = had_history[-1].get("draw", 0) or 0
         used_had_for_wl = set()  # 记录已用于胜/负差的HAD索引
         had_dd_covered = set()   # 记录已在HHAD循环中计算了双平差的HAD索引
+        last_used_had_draw = had_history[0].get("draw", 0) or 0  # 记录最近使用的HAD平数据
         
         total_rows = len(hhad_history)
         
@@ -366,8 +370,9 @@ def _write_detail_sheet(wb, match, index):
                 cur_had_draw = had_history[0].get("draw", 0) or 0
                 cur_hhad_draw = hhad_history[0].get("draw", 0) or 0
                 had_dd_covered.add(0)  # HAD[0]的draw已用于双平差
+                last_used_had_draw = cur_had_draw
             else:
-                # 后续行：按时间戳匹配
+                # 后续行：按时间戳匹配，匹配不到则使用向前查找最近的HAD
                 matched_had_idx = find_matching_had(hhad_history[r], had_history)
                 
                 if matched_had_idx is not None and matched_had_idx not in used_had_for_wl:
@@ -383,18 +388,28 @@ def _write_detail_sheet(wb, match, index):
                     used_had_for_wl.add(matched_had_idx)
                     cur_had_draw = had_history[matched_had_idx].get("draw", 0) or 0
                     had_dd_covered.add(matched_had_idx)
+                    last_used_had_draw = cur_had_draw
                 else:
                     # 无匹配或已使用，胜/负差显示"-"
                     ws.cell(row=row, column=1, value="-")
                     ws.cell(row=row, column=2, value="-")
                     ws.cell(row=row, column=4, value="-")
                     ws.cell(row=row, column=5, value="-")
-                    # 双平差使用最近一次匹配的HAD或最后一条
-                    if matched_had_idx is not None:
-                        cur_had_draw = had_history[matched_had_idx].get("draw", 0) or 0
-                        had_dd_covered.add(matched_had_idx)
-                    else:
-                        cur_had_draw = last_had_draw
+                    # 双平差：向前查找时间戳<=当前HHAD的最近HAD
+                    hhad_dt = parse_full_datetime(hhad_history[r])
+                    cur_had_draw = last_used_had_draw  # 默认使用最近一次的
+                    if hhad_dt:
+                        best_candidate = None
+                        best_dt = None
+                        for had_item in had_history:
+                            had_dt = parse_full_datetime(had_item)
+                            if had_dt and had_dt <= hhad_dt:
+                                if best_dt is None or had_dt > best_dt:
+                                    best_dt = had_dt
+                                    best_candidate = had_item
+                        if best_candidate:
+                            cur_had_draw = best_candidate.get("draw", 0) or 0
+                            last_used_had_draw = cur_had_draw
                 
                 cur_hhad_draw = hhad_history[r].get("draw", 0) or 0
             
@@ -458,7 +473,7 @@ def _write_detail_sheet(wb, match, index):
             row_idx += 1
 
     elif len(hhad_history) >= 2:
-        # 无HAD更新，仅用HHAD让平数据做差：HHAD[i].draw - HHAD[0].draw
+        # 无胜平负指数更新，仅用HHAD让平数据做差：HHAD[i].draw - HHAD[0].draw
         ws.cell(row=row, column=1, value="赔率差值分析").font = SECTION_FONT
         ws.cell(row=row, column=1).fill = SECTION_FILL
         ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=6)
