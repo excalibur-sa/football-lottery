@@ -1,0 +1,229 @@
+/* 容器和基础布局 */
+.container {
+  padding: 20rpx;
+}
+
+.section {
+  background: white;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.section-header {
+  border-bottom: 2rpx solid #007AFF;
+  padding-bottom: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #007AFF;
+}
+
+/* 基本信息网格 */
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20rpx;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-label {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 8rpx;
+}
+
+.info-value {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: bold;
+}
+
+.team-name {
+  color: #007AFF;
+}
+
+/* 赔率表格 - view flex布局 */
+.odds-list {
+  border: 1rpx solid #ddd;
+  border-radius: 8rpx;
+  overflow: hidden;
+}
+
+.odds-header {
+  display: flex;
+  background-color: #007AFF;
+  color: white;
+  font-weight: bold;
+}
+
+.odds-col {
+  flex: 1;
+  padding: 20rpx;
+  text-align: center;
+  font-size: 28rpx;
+  border-right: 1rpx solid rgba(255, 255, 255, 0.2);
+}
+
+.odds-col:last-child {
+  border-right: none;
+}
+
+.odds-data-row {
+  display: flex;
+  background-color: #f9f9f9;
+}
+
+.odds-data-row .odds-col {
+  border-right: 1rpx solid #eee;
+  color: #333;
+}
+
+/* 历史记录列表 */
+.history-list {
+  border: 1rpx solid #ddd;
+  border-radius: 8rpx;
+  overflow: hidden;
+}
+
+.history-header {
+  display: flex;
+  background-color: #007AFF;
+  color: white;
+  font-weight: bold;
+}
+
+.history-col {
+  flex: 1;
+  padding: 16rpx;
+  text-align: center;
+  font-size: 24rpx;
+  border-right: 1rpx solid rgba(255, 255, 255, 0.2);
+  white-space: nowrap;
+}
+
+.history-col:last-child {
+  border-right: none;
+}
+
+.history-scroll {
+  max-height: 400rpx;
+}
+
+.history-item {
+  display: flex;
+  border-bottom: 1rpx solid #eee;
+}
+
+.history-item:last-child {
+  border-bottom: none;
+}
+
+.history-item:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+/* 差值分析 - view flex布局 */
+.diff-list {
+  border: 1rpx solid #ddd;
+  border-radius: 8rpx;
+  overflow: hidden;
+}
+
+.diff-header {
+  display: flex;
+  background-color: #FF9500;
+  color: white;
+  font-weight: bold;
+}
+
+.diff-col {
+  flex: 1;
+  padding: 12rpx 8rpx;
+  text-align: center;
+  font-size: 22rpx;
+  border-right: 1rpx solid rgba(255, 255, 255, 0.2);
+  white-space: nowrap;
+}
+
+.diff-col:last-child {
+  border-right: none;
+}
+
+.diff-item {
+  display: flex;
+  border-bottom: 1rpx solid #eee;
+}
+
+.diff-item:last-child {
+  border-bottom: none;
+}
+
+.diff-item:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.diff-item .diff-col {
+  border-right: 1rpx solid #eee;
+  color: #333;
+}
+
+.negative-row {
+  background-color: #fff5f5;
+}
+
+.negative-row td {
+  background-color: #fff5f5;
+}
+
+.diff-negative {
+  color: #FF3B30;
+  font-weight: bold;
+}
+
+/* 加载和空状态 */
+.loading, .empty-state {
+  text-align: center;
+  padding: 80rpx 0;
+  color: #999;
+}
+
+.spinner {
+  width: 40rpx;
+  height: 40rpx;
+  border: 4rpx solid #f3f3f3;
+  border-top: 4rpx solid #007AFF;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20rpx;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 响应式适配 */
+@media (max-width: 750rpx) {
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .diff-col {
+    padding: 10rpx 6rpx;
+    font-size: 20rpx;
+  }
+  
+  .history-col {
+    padding: 12rpx 8rpx;
+    font-size: 22rpx;
+  }
+}

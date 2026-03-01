@@ -1,0 +1,276 @@
+/* 顶部操作栏 - 四个按钮一行 */
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16rpx;
+  background: white;
+  border-radius: 12rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  gap: 12rpx;
+  box-sizing: border-box;
+}
+
+.picker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8rpx 12rpx;
+  background: #f0f0f0;
+  border-radius: 6rpx;
+  font-size: 24rpx;
+  flex: 1.5;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.arrow {
+  margin-left: 6rpx;
+  color: #999;
+  font-size: 18rpx;
+}
+
+.refresh-btn {
+  flex: 1;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.select-btn {
+  flex: 1;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.share-btn {
+  flex: 1;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* 比赛项基础样式 */
+.match-item {
+  background: white;
+  border-radius: 12rpx;
+  padding: 16rpx;
+  margin-bottom: 16rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.match-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16rpx;
+}
+
+.match-checkbox {
+  display: flex;
+  align-items: center;
+  padding: 8rpx;
+}
+
+.custom-checkbox {
+  width: 40rpx;
+  height: 40rpx;
+  border: 2rpx solid #ccc;
+  border-radius: 6rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.custom-checkbox-checked {
+  background-color: #007AFF;
+  border-color: #007AFF;
+}
+
+.checkmark {
+  color: white;
+  font-size: 28rpx;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.match-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.match-row-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+}
+
+.match-row-bottom {
+  display: flex;
+  align-items: center;
+}
+
+/* 赔率区域包装器 */
+.odds-section-wrapper {
+  display: flex;
+  align-items: stretch;
+  margin-top: 12rpx;
+  padding-top: 12rpx;
+  border-top: 1rpx solid #f0f0f0;
+  gap: 12rpx;
+}
+
+.odds-section-rows {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.odds-section-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* 紧凑查看赔率按钮 - 尺寸参考 league-tag，字体参考 team-name */
+.odds-btn-compact {
+  background-color: #FF9500;
+  color: white;
+  font-size: 28rpx;
+  font-weight: bold;
+  padding: 2rpx 10rpx;
+  border-radius: 4rpx;
+  border: none;
+  text-align: center;
+  white-space: nowrap;
+  min-width: 100rpx;
+  align-self: center;
+  line-height: 1.4;
+}
+
+.odds-btn-compact:active {
+  background-color: #E68600;
+}
+
+.match-time {
+  font-size: 24rpx;
+  color: #666;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.league-tag {
+  background-color: #007AFF;
+  color: white;
+  font-size: 20rpx;
+  padding: 2rpx 10rpx;
+  border-radius: 4rpx;
+  text-align: center;
+  white-space: nowrap;
+  min-width: 100rpx;
+}
+
+.match-teams {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.team-name {
+  font-size: 28rpx;
+  font-weight: bold;
+  flex: 1;
+  text-align: center;
+}
+
+.vs {
+  font-size: 20rpx;
+  color: #999;
+  margin: 0 8rpx;
+}
+
+/* 赔率显示区域 - 已合并到 odds-section-wrapper */
+
+.section-label {
+  font-size: 24rpx;
+  color: #333;
+  font-weight: bold;
+  margin-right: 8rpx;
+  white-space: nowrap;
+}
+
+.odds-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex: 1;
+}
+
+.odds-item {
+  font-size: 24rpx;
+  color: #007AFF;
+  font-weight: bold;
+  padding: 4rpx 10rpx;
+  background: #f0f8ff;
+  border-radius: 4rpx;
+  white-space: nowrap;
+}
+
+/* 按钮样式 */
+.btn {
+  padding: 8rpx 12rpx;
+  border-radius: 6rpx;
+  font-size: 24rpx;
+  border: none;
+  min-width: 0;
+  width: 100%;
+}
+
+.btn-outline {
+  background: transparent;
+  color: #007AFF;
+  border: 1rpx solid #007AFF;
+}
+
+.btn-success {
+  background: #34C759;
+  color: white;
+}
+
+.btn-sm {
+  padding: 6rpx 10rpx;
+  font-size: 22rpx;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+}
+
+/* 加载和空状态 */
+.loading, .empty-state {
+  text-align: center;
+  padding: 80rpx 0;
+  color: #999;
+}
+
+.spinner {
+  width: 40rpx;
+  height: 40rpx;
+  border: 4rpx solid #f3f3f3;
+  border-top: 4rpx solid #007AFF;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20rpx;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

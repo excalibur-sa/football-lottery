@@ -1,0 +1,149 @@
+<view class="container">
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="spinner"></view>
+    <text>加载赔率详情中...</text>
+  </view>
+
+  <!-- 错误提示 -->
+  <view class="empty-state" wx:elif="{{error}}">
+    <text>{{error}}</text>
+  </view>
+
+  <!-- 赔率详情内容 -->
+  <view wx:else>
+    <!-- 基本信息 -->
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">基本信息</text>
+      </view>
+      <view class="info-grid">
+        <view class="info-item">
+          <text class="info-label">比赛时间</text>
+          <text class="info-value">{{match.match_time}}</text>
+        </view>
+        <view class="info-item">
+          <text class="info-label">联赛</text>
+          <text class="info-value">{{match.league}}</text>
+        </view>
+        <view class="info-item">
+          <text class="info-label">主队</text>
+          <text class="info-value team-name">{{match.home_team}}</text>
+        </view>
+        <view class="info-item">
+          <text class="info-label">客队</text>
+          <text class="info-value team-name">{{match.away_team}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 胜平负赔率 -->
+    <view class="section" wx:if="{{match.had_odds}}">
+      <view class="section-header">
+        <text class="section-title">胜平负赔率</text>
+      </view>
+      <view class="odds-list">
+        <view class="odds-header">
+          <text class="odds-col">胜</text>
+          <text class="odds-col">平</text>
+          <text class="odds-col">负</text>
+        </view>
+        <view class="odds-data-row">
+          <text class="odds-col">{{match.had_odds.win || '-'}}</text>
+          <text class="odds-col">{{match.had_odds.draw || '-'}}</text>
+          <text class="odds-col">{{match.had_odds.lose || '-'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 让球胜平负赔率 -->
+    <view class="section" wx:if="{{match.hhad_odds && (match.hhad_odds.win || match.hhad_odds.draw || match.hhad_odds.lose)}}">
+      <view class="section-header">
+        <text class="section-title">让球胜平负 (让 {{match.hhad_odds.handicap || 0}} 球)</text>
+      </view>
+      <view class="odds-list">
+        <view class="odds-header">
+          <text class="odds-col">让胜</text>
+          <text class="odds-col">让平</text>
+          <text class="odds-col">让负</text>
+        </view>
+        <view class="odds-data-row">
+          <text class="odds-col">{{match.hhad_odds.win || '-'}}</text>
+          <text class="odds-col">{{match.hhad_odds.draw || '-'}}</text>
+          <text class="odds-col">{{match.hhad_odds.lose || '-'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 胜平负赔率历史 -->
+    <view class="section" wx:if="{{hadHistory.length > 0}}">
+      <view class="section-header">
+        <text class="section-title">胜平负赔率变化历史 ({{hadHistory.length}}条)</text>
+      </view>
+      <view class="history-list">
+        <view class="history-header">
+          <text class="history-col">时间</text>
+          <text class="history-col">胜</text>
+          <text class="history-col">平</text>
+          <text class="history-col">负</text>
+        </view>
+        <scroll-view class="history-scroll" scroll-y>
+          <view class="history-item" wx:for="{{hadHistory}}" wx:key="index">
+            <text class="history-col">{{item.short_time}}</text>
+            <text class="history-col">{{item.win}}</text>
+            <text class="history-col">{{item.draw}}</text>
+            <text class="history-col">{{item.lose}}</text>
+          </view>
+        </scroll-view>
+      </view>
+    </view>
+
+    <!-- 让球胜平负赔率历史 -->
+    <view class="section" wx:if="{{hhadHistory.length > 0}}">
+      <view class="section-header">
+        <text class="section-title">让球胜平负赔率变化历史 ({{hhadHistory.length}}条)</text>
+      </view>
+      <view class="history-list">
+        <view class="history-header">
+          <text class="history-col">时间</text>
+          <text class="history-col">让胜</text>
+          <text class="history-col">让平</text>
+          <text class="history-col">让负</text>
+        </view>
+        <scroll-view class="history-scroll" scroll-y>
+          <view class="history-item" wx:for="{{hhadHistory}}" wx:key="index">
+            <text class="history-col">{{item.short_time}}</text>
+            <text class="history-col">{{item.win}}</text>
+            <text class="history-col">{{item.draw}}</text>
+            <text class="history-col">{{item.lose}}</text>
+          </view>
+        </scroll-view>
+      </view>
+    </view>
+
+    <!-- 赔率差值分析 -->
+    <view class="section" wx:if="{{diffData.length > 0}}">
+      <view class="section-header">
+        <text class="section-title">赔率差值分析</text>
+      </view>
+      <view class="diff-list">
+        <view class="diff-header">
+          <text class="diff-col">胜差</text>
+          <text class="diff-col">负差</text>
+          <text class="diff-col">双平差</text>
+          <text class="diff-col">胜正负</text>
+          <text class="diff-col">负正负</text>
+          <text class="diff-col">双平正负</text>
+        </view>
+        <view class="diff-item {{item.isNegative ? 'negative-row' : ''}}" wx:for="{{diffData}}" wx:key="index">
+          <text class="diff-col {{item.winDiff < 0 ? 'diff-negative' : ''}}">{{item.winDiffStr}}</text>
+          <text class="diff-col {{item.loseDiff < 0 ? 'diff-negative' : ''}}">{{item.loseDiffStr}}</text>
+          <text class="diff-col {{item.ddDiff < 0 ? 'diff-negative' : ''}}">{{item.ddDiffStr}}</text>
+          <text class="diff-col">{{item.winSign}}</text>
+          <text class="diff-col">{{item.loseSign}}</text>
+          <text class="diff-col">{{item.ddSign}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

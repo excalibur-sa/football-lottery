@@ -1,0 +1,88 @@
+<view class="container">
+  <!-- 顶部操作栏 - 四个按钮一行显示 -->
+  <view class="header-section">
+    <picker mode="date" value="{{currentDate}}" start="2020-01-01" end="2030-12-31" bindchange="onDateChange">
+      <view class="picker">
+        <text>{{currentDate}}</text>
+        <text class="arrow">▼</text>
+      </view>
+    </picker>
+    <button class="btn btn-outline btn-sm refresh-btn" bindtap="reloadMatches">刷新</button>
+    <button class="btn btn-outline btn-sm select-btn" bindtap="selectAll">{{allSelected ? '取消' : '全选'}}</button>
+    <button 
+      class="btn {{selectedIds.length > 0 ? 'btn-success' : 'btn-outline'}} btn-sm share-btn" 
+      bindtap="shareData"
+      disabled="{{selectedIds.length === 0}}"
+    >
+      分享({{selectedIds.length}})
+    </button>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="spinner"></view>
+    <text>加载比赛数据中...</text>
+  </view>
+
+  <!-- 错误提示 -->
+  <view class="empty-state" wx:elif="{{error}}">
+    <text>{{error}}</text>
+  </view>
+
+  <!-- 空数据状态 -->
+  <view class="empty-state" wx:elif="{{matches.length === 0 && !loading}}">
+    <text>暂无比赛数据</text>
+  </view>
+
+  <!-- 比赛列表 -->
+  <view wx:else>
+    <view class="match-item" wx:for="{{matches}}" wx:key="match_id">
+      <view class="match-header">
+        <view class="match-checkbox" bindtap="onCheckboxTap" data-id="{{item.match_id}}">
+          <view class="custom-checkbox {{item.checked ? 'custom-checkbox-checked' : ''}}">
+            <text wx:if="{{item.checked}}" class="checkmark">✓</text>
+          </view>
+        </view>
+        <view class="match-content">
+          <view class="match-row-top">
+            <text class="match-time">{{item.match_time}}</text>
+            <text class="league-tag">{{item.league}}</text>
+          </view>
+          <view class="match-row-bottom">
+            <text class="team-name">{{item.home_team}}</text>
+            <text class="vs">vs</text>
+            <text class="team-name">{{item.away_team}}</text>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 赔率区域 -->
+      <view class="odds-section-wrapper">
+        <view class="odds-section-rows">
+          <!-- 胜平负赔率 -->
+          <view class="odds-section-row" wx:if="{{item.had_odds}}">
+            <text class="section-label">胜平负:</text>
+            <view class="odds-row">
+              <text class="odds-item">胜 {{item.had_odds.win || '-'}}</text>
+              <text class="odds-item">平 {{item.had_odds.draw || '-'}}</text>
+              <text class="odds-item">负 {{item.had_odds.lose || '-'}}</text>
+            </view>
+          </view>
+          
+          <!-- 让球胜平负赔率 -->
+          <view class="odds-section-row" wx:if="{{item.hhad_odds && (item.hhad_odds.win || item.hhad_odds.draw || item.hhad_odds.lose)}}">
+            <text class="section-label">让球({{item.hhad_odds.handicap || 0}}):</text>
+            <view class="odds-row">
+              <text class="odds-item">让胜 {{item.hhad_odds.win || '-'}}</text>
+              <text class="odds-item">让平 {{item.hhad_odds.draw || '-'}}</text>
+              <text class="odds-item">让负 {{item.hhad_odds.lose || '-'}}</text>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 查看赔率按钮 - 跨两行 -->
+        <view class="odds-btn-compact" bindtap="viewDetail" data-id="{{item.match_id}}">查看赔率</view>
+      </view>
+    </view>
+  </view>
+</view>

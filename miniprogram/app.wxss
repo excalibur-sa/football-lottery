@@ -1,0 +1,225 @@
+/* 全局样式 */
+page {
+  background-color: #f5f5f5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.container {
+  padding: 20rpx;
+}
+
+/* 比赛列表项 */
+.match-item {
+  background: white;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.match-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.match-time {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.league-tag {
+  background-color: #007AFF;
+  color: white;
+  font-size: 24rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+}
+
+.match-teams {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 16rpx 0;
+}
+
+.team-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  flex: 1;
+  text-align: center;
+}
+
+.vs {
+  font-size: 24rpx;
+  color: #999;
+  margin: 0 20rpx;
+}
+
+/* 按钮样式 */
+.btn {
+  padding: 16rpx 24rpx;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  text-align: center;
+  border: none;
+}
+
+.btn-primary {
+  background-color: #007AFF;
+  color: white;
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: #007AFF;
+  border: 2rpx solid #007AFF;
+}
+
+.btn-success {
+  background-color: #34C759;
+  color: white;
+}
+
+.btn-sm {
+  padding: 12rpx 20rpx;
+  font-size: 24rpx;
+}
+
+/* 赔率表格 */
+.odds-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20rpx 0;
+}
+
+.odds-table th,
+.odds-table td {
+  border: 1rpx solid #ddd;
+  padding: 16rpx;
+  text-align: center;
+  font-size: 26rpx;
+}
+
+.odds-table th {
+  background-color: #007AFF;
+  color: white;
+  font-weight: bold;
+}
+
+.odds-table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+/* 历史记录列表 */
+.history-list {
+  max-height: 400rpx;
+  overflow-y: auto;
+  border: 1rpx solid #ddd;
+  border-radius: 8rpx;
+}
+
+.history-item {
+  padding: 16rpx;
+  border-bottom: 1rpx solid #eee;
+  font-size: 24rpx;
+}
+
+.history-item:last-child {
+  border-bottom: none;
+}
+
+/* 差值分析表格 */
+.diff-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20rpx 0;
+}
+
+.diff-table th,
+.diff-table td {
+  border: 1rpx solid #ddd;
+  padding: 12rpx;
+  text-align: center;
+  font-size: 22rpx;
+}
+
+.diff-table th {
+  background-color: #FF9500;
+  color: white;
+  font-weight: bold;
+}
+
+.diff-negative {
+  color: #FF3B30;
+  font-weight: bold;
+}
+
+/* 加载状态 */
+.loading {
+  text-align: center;
+  padding: 40rpx 0;
+  color: #999;
+}
+
+.spinner {
+  width: 40rpx;
+  height: 40rpx;
+  border: 4rpx solid #f3f3f3;
+  border-top: 4rpx solid #007AFF;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20rpx;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 空状态 */
+.empty-state {
+  text-align: center;
+  padding: 80rpx 0;
+  color: #999;
+}
+
+/* 选择框 */
+.checkbox-group {
+  display: flex;
+  align-items: center;
+}
+
+.checkbox {
+  margin-right: 16rpx;
+}
+
+/* 标题区域 */
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30rpx;
+  padding: 0 10rpx;
+}
+
+.section-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+/* 选中数量显示 */
+.selected-count {
+  color: #007AFF;
+  font-weight: bold;
+}
+
+/* 赔率详情折叠区域 */
+.detail-section {
+  background-color: #f0f8ff;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  margin-top: 20rpx;
+}

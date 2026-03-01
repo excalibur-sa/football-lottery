@@ -235,7 +235,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // 赔率差值分析
-        if (hadHistory.length >= 2 && hhadHistory.length >= 1) {
+        if (hadHistory.length >= 1 && hhadHistory.length >= 1) {
             var baseWin = hadHistory[0].win || 0;
             var baseLose = hadHistory[0].lose || 0;
             var lastHadDraw = hadHistory[hadHistory.length - 1].draw || 0;
@@ -283,8 +283,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 '<div style="max-height: 200px; overflow-y: auto;">' +
                 '<table class="table table-sm table-bordered mb-0 table-striped">' +
                 '<thead class="sticky-top bg-white"><tr class="table-warning">' +
-                '<th>胜的赔率的差</th><th>负的赔率的差</th><th>双平赔率的差</th>' +
-                '<th>胜差正负</th><th>负差正负</th><th>双平差正负</th></tr></thead><tbody>';
+                '<th>胜差</th><th>负差</th><th>双平差</th>' +
+                '<th>胜正负</th><th>负正负</th><th>双平正负</th></tr></thead><tbody>';
 
             for (var r = 0; r < totalRows; r++) {
                 var winDiff, loseDiff, winSign, loseSign;
@@ -313,7 +313,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     // 后续行：按时间戳匹配
                     var matchedHadIdx = findMatchingHad(hhadHistory[r], hadHistory);
 
-                    if (matchedHadIdx !== null && !usedHadForWl[matchedHadIdx]) {
+                    if (hadHistory.length >= 2 && matchedHadIdx !== null && !usedHadForWl[matchedHadIdx]) {
                         // 找到匹配且未使用过
                         var curWin = hadHistory[matchedHadIdx].win || 0;
                         var curLose = hadHistory[matchedHadIdx].lose || 0;
@@ -432,8 +432,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 '<div style="max-height: 200px; overflow-y: auto;">' +
                 '<table class="table table-sm table-bordered mb-0 table-striped">' +
                 '<thead class="sticky-top bg-white"><tr class="table-warning">' +
-                '<th>胜的赔率的差</th><th>负的赔率的差</th><th>双平赔率的差</th>' +
-                '<th>胜差正负</th><th>负差正负</th><th>双平差正负</th></tr></thead><tbody>';
+                '<th>胜差</th><th>负差</th><th>双平差</th>' +
+                '<th>胜正负</th><th>负正负</th><th>双平正负</th></tr></thead><tbody>';
             
             for (var hi = 1; hi < hhadHistory.length; hi++) {
                 var curDraw = hhadHistory[hi].draw || 0;

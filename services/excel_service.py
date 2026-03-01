@@ -280,8 +280,8 @@ def _write_detail_sheet(wb, match, index):
     # 判断是否有胜平负指数更新：HAD历史非空即有更新
     has_had_update = len(had_history) >= 1
     
-    # 需要有让球更新(>=2条)才能计算赔率差
-    if len(hhad_history) >= 2 and has_had_update:
+    # 需要有让球更新(>=1条)和胜平负数据才能计算赔率差
+    if len(hhad_history) >= 1 and has_had_update:
         ws.cell(row=row, column=1, value="赔率差值分析").font = SECTION_FONT
         ws.cell(row=row, column=1).fill = SECTION_FILL
         ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=6)
@@ -395,6 +395,9 @@ def _write_detail_sheet(wb, match, index):
                     ws.cell(row=row, column=2, value="-")
                     ws.cell(row=row, column=4, value="-")
                     ws.cell(row=row, column=5, value="-")
+                    # 时间匹配到的HAD已用于胜/负差，标记其双平差也已覆盖
+                    if matched_had_idx is not None:
+                        had_dd_covered.add(matched_had_idx)
                     # 双平差：向前查找时间戳<=当前HHAD的最近HAD
                     hhad_dt = parse_full_datetime(hhad_history[r])
                     cur_had_draw = last_used_had_draw  # 默认使用最近一次的
