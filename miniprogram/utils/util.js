@@ -414,11 +414,22 @@ function formatShareText(date, matchDetailsArray) {
   let text = '竞彩足球数据分享\n';
   text += `日期: ${date} | 场次: ${matchDetailsArray.length}场\n`;
 
+  // 分享时按时间排序（matchDetailsArray已在调用方排好序）
   matchDetailsArray.forEach((detail, index) => {
     const { match, hadHistory, hhadHistory, diffData } = detail;
+    const isFinished = match.status === 'finished';
+    const statusLabel = isFinished ? '[已完赛]' : '[未完赛]';
     text += '\n';
-    text += `${index + 1}. ${match.home_team || ''} vs ${match.away_team || ''}\n`;
-    text += `   时间: ${formatMatchTime(match.match_time)} | 联赛: ${match.league || ''}\n`;
+    text += `${index + 1}. ${statusLabel} ${match.home_team || ''} vs ${match.away_team || ''}`;
+    if (isFinished && match.full_score) {
+      text += ` (${match.full_score})`;
+    }
+    text += '\n';
+    text += `   时间: ${formatMatchTime(match.match_time)} | 联赛: ${match.league || ''}`;
+    if (isFinished && match.result) {
+      text += ` | 结果: ${match.result}`;
+    }
+    text += '\n';
 
     if (match.had_odds) {
       text += `   胜平负: ${match.had_odds.win || '-'} / ${match.had_odds.draw || '-'} / ${match.had_odds.lose || '-'}\n`;

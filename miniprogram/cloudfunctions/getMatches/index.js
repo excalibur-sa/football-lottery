@@ -92,7 +92,7 @@ async function queryResults(startDate, endDate) {
       matchBeginDate: startDate,
       matchEndDate: endDate,
       leagueId: '',
-      pageSize: '30',
+      pageSize: '100',
       pageNo: '1',
       isFix: '0',
       matchPage: '1',
@@ -172,7 +172,7 @@ function parseResultMatch(m) {
   
   const match = {
     match_id: matchId,
-    match_time: m.matchDate || '',
+    match_time: `${m.matchDate || ''}${m.matchTime ? ' ' + m.matchTime : ''}`,
     match_num: m.matchNumStr || '',
     league: m.leagueNameAbbr || '',
     home_team: m.homeTeam || '',
@@ -221,32 +221,52 @@ function translateWinFlag(flag) {
 }
 
 /**
+ * 合并在售和已完赛场次，按match_id去重（在售优先）
+ */
+function mergeMatches(sellingList, resultList) {
+  const idSet = new Set(sellingList.map(m => m.match_id));
+  const merged = [...sellingList];
+  for (const m of resultList) {
+    if (!idSet.has(m.match_id)) {
+      merged.push(m);
+    }
+  }
+  return merged;
+}
+
+/**
  * 云函数入口函数
  */
 exports.main = async (event, context) => {
-  const { date } = event; // 可选日期参数 YYYY-MM-DD
+  const { date, searchTeam, searchDate } = event;
   
   try {
+    // 搜索模式：按队名搜索前后4天共9天的场次
+    if (searchTeam && searchDate) {
+      return await handleSearch(searchTeam, searchDate);
+    }
+
     let matches = [];
     
     if (!date) {
-      // 无指定日期：优先获取在售比赛
-      matches = await getSellingMatches();
-      if (matches.length === 0) {
-        matches = await getRecentResults();
-      }
+      // 无指定日期：获取在售比赛 + 当日已完赛
+      const today = new Date();
+      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      const [selling, results] = await Promise.all([
+        getSellingMatches(),
+        getResultsByDate(todayStr)
+      ]);
+      matches = mergeMatches(selling, results);
     } else {
-      // 指定日期：先尝试在售比赛中筛选
-      const selling = await getSellingMatches();
-      const dateMatches = selling.filter(m => 
+      // 指定日期：同时获取在售和已完赛，合并去重
+      const [selling, results] = await Promise.all([
+        getSellingMatches(),
+        getResultsByDate(date)
+      ]);
+      const dateSellingMatches = selling.filter(m => 
         m.match_time && m.match_time.startsWith(date)
       );
-      
-      if (dateMatches.length > 0) {
-        matches = dateMatches;
-      } else {
-        matches = await getResultsByDate(date);
-      }
+      matches = mergeMatches(dateSellingMatches, results);
     }
     
     // 按时间排序
@@ -270,3 +290,84 @@ exports.main = async (event, context) => {
     };
   }
 };
+
+/**
+ * 模糊匹配：先尝试子串匹配，再尝试子序列匹配
+ * 例："皇马" 匹配 "皇家马德里"（皇...马 子序列命中）
+ *     "国米" 匹配 "国际米兰"（国...米 子序列命中）
+ *     "曼联" 匹配 "曼彻斯特联"（曼...联 子序列命中）
+ */
+function fuzzyMatch(keyword, text) {
+  if (!keyword || !text) return false;
+  const kw = keyword.toLowerCase();
+  const t = text.toLowerCase();
+  // 子串匹配
+  if (t.includes(kw)) return true;
+  // 子序列匹配：关键词的每个字符按顺序出现在文本中
+  let ki = 0;
+  for (let ti = 0; ti < t.length && ki < kw.length; ti++) {
+    if (t[ti] === kw[ki]) ki++;
+  }
+  return ki === kw.length;
+}
+
+/**
+ * 搜索模式：以searchDate为基准，搜索前后4天（共9天）的比赛
+ */
+async function handleSearch(teamName, baseDate) {
+  try {
+    const keyword = teamName.trim();
+    if (!keyword) {
+      return { success: true, count: 0, matches: [] };
+    }
+
+    // 生成9天日期范围
+    const base = new Date(baseDate.replace(/-/g, '/'));
+    const startD = new Date(base.getTime() - 4 * 24 * 60 * 60 * 1000);
+    const endD = new Date(base.getTime() + 4 * 24 * 60 * 60 * 1000);
+    const fmtDate = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const startDate = fmtDate(startD);
+    const endDate = fmtDate(endD);
+
+    // 并行获取在售比赛 + 日期范围内的赛果
+    const [selling, results] = await Promise.all([
+      getSellingMatches(),
+      queryResults(startDate, endDate)
+    ]);
+
+    // 在售比赛按日期范围过滤
+    const sellingInRange = selling.filter(m => {
+      if (!m.match_time) return false;
+      const matchDate = m.match_time.substring(0, 10);
+      return matchDate >= startDate && matchDate <= endDate;
+    });
+
+    // 合并去重
+    const allMatches = mergeMatches(sellingInRange, results);
+
+    // 按队名模糊筛选
+    const filtered = allMatches.filter(m => {
+      return fuzzyMatch(keyword, m.home_team) || fuzzyMatch(keyword, m.away_team);
+    });
+
+    // 按时间排序
+    filtered.sort((a, b) => {
+      const timeA = a.match_time || '';
+      const timeB = b.match_time || '';
+      return timeA.localeCompare(timeB);
+    });
+
+    return {
+      success: true,
+      count: filtered.length,
+      matches: filtered,
+      searchInfo: { team: teamName, dateRange: `${startDate} ~ ${endDate}` }
+    };
+  } catch (error) {
+    console.error('搜索比赛失败:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}

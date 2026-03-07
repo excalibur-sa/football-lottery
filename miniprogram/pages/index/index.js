@@ -2,12 +2,16 @@ const util = require('../../utils/util.js');
 
 Page({
   data: {
-    matches: [],           // 比赛列表
+    matches: [],           // 比赛列表（显示排序：未完赛在前，已完赛在后）
     loading: false,        // 加载状态
     error: '',             // 错误信息
     currentDate: '',       // 当前选择的日期
     selectedIds: [],       // 选中的比赛ID列表
-    allSelected: false     // 是否全选
+    allSelected: false,    // 是否全选
+    searchKeyword: '',     // 搜索关键词
+    isSearchMode: false,   // 是否搜索模式
+    searchInfo: null,      // 搜索结果信息
+    finishedStartIndex: -1 // 已完赛场次起始索引（-1表示无已完赛场次）
   },
 
   onLoad: function() {
@@ -18,6 +22,21 @@ Page({
     
     // 加载比赛数据
     this.loadMatches();
+  },
+
+  /**
+   * 对比赛列表按显示规则排序：未完赛在前，已完赛在后，各自内部按时间排序
+   * 返回 { sorted, finishedStartIndex }
+   */
+  _sortMatchesForDisplay(matchList) {
+    const unfinished = matchList.filter(m => m.status !== 'finished');
+    const finished = matchList.filter(m => m.status === 'finished');
+    const timeSort = (a, b) => (a.match_time || '').localeCompare(b.match_time || '');
+    unfinished.sort(timeSort);
+    finished.sort(timeSort);
+    const sorted = [...unfinished, ...finished];
+    const finishedStartIndex = unfinished.length > 0 && finished.length > 0 ? unfinished.length : -1;
+    return { sorted, finishedStartIndex };
   },
 
   /**
@@ -42,11 +61,14 @@ Page({
       });
       
       if (res.result && res.result.success) {
+        const rawMatches = (res.result.matches || []).map(m => ({...m, checked: false}));
+        const { sorted, finishedStartIndex } = this._sortMatchesForDisplay(rawMatches);
         this.setData({ 
-          matches: (res.result.matches || []).map(m => ({...m, checked: false})),
+          matches: sorted,
           loading: false,
           selectedIds: [],
-          allSelected: false
+          allSelected: false,
+          finishedStartIndex
         });
       } else {
         throw new Error(res.result?.error || '获取数据失败');
@@ -66,8 +88,10 @@ Page({
   onDateChange: function(e) {
     this.setData({ 
       currentDate: e.detail.value,
-      selectedIds: [],  // 清空选择
-      allSelected: false
+      selectedIds: [],
+      allSelected: false,
+      isSearchMode: false,
+      searchInfo: null
     });
     this.loadMatches();
   },
@@ -126,6 +150,72 @@ Page({
   },
 
   /**
+   * 搜索输入变化
+   */
+  onSearchInput: function(e) {
+    this.setData({ searchKeyword: e.detail.value });
+  },
+
+  /**
+   * 执行搜索
+   */
+  async onSearch() {
+    const keyword = (this.data.searchKeyword || '').trim();
+    if (!keyword) {
+      util.showToast('请输入队伍名称');
+      return;
+    }
+
+    this.setData({ loading: true, error: '', isSearchMode: true, searchInfo: null });
+
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'getMatches',
+        data: { 
+          searchTeam: keyword,
+          searchDate: this.data.currentDate
+        }
+      });
+
+      if (res.result && res.result.success) {
+        const rawMatches = (res.result.matches || []).map(m => ({...m, checked: false}));
+        const { sorted, finishedStartIndex } = this._sortMatchesForDisplay(rawMatches);
+        this.setData({
+          matches: sorted,
+          loading: false,
+          selectedIds: [],
+          allSelected: false,
+          searchInfo: res.result.searchInfo || null,
+          finishedStartIndex
+        });
+        if (res.result.matches.length === 0) {
+          util.showToast('未找到相关比赛');
+        }
+      } else {
+        throw new Error(res.result?.error || '搜索失败');
+      }
+    } catch (err) {
+      console.error('搜索失败:', err);
+      this.setData({
+        error: err.message || '搜索请求失败',
+        loading: false
+      });
+    }
+  },
+
+  /**
+   * 清除搜索，恢复普通模式
+   */
+  clearSearch: function() {
+    this.setData({
+      searchKeyword: '',
+      isSearchMode: false,
+      searchInfo: null
+    });
+    this.loadMatches();
+  },
+
+  /**
    * 分享数据（包含赔率历史和赔率差值分析）
    */
   shareData: async function() {
@@ -142,6 +232,9 @@ Page({
       const selectedMatches = matches.filter(match => 
         selectedIds.includes(match.match_id)
       );
+      
+      // 分享时按时间顺序排列（不按显示分组排序）
+      selectedMatches.sort((a, b) => (a.match_time || '').localeCompare(b.match_time || ''));
       
       // 并行获取每场比赛的赔率历史
       const historyPromises = selectedMatches.map(match => 
