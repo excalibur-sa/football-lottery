@@ -1,0 +1,64 @@
+<view class="welcome-container">
+  <!-- 背景装饰粒子 -->
+  <view class="particle particle-1"></view>
+  <view class="particle particle-2"></view>
+  <view class="particle particle-3"></view>
+  <view class="particle particle-4"></view>
+  <view class="particle particle-5"></view>
+  <view class="grid-line grid-line-h1"></view>
+  <view class="grid-line grid-line-h2"></view>
+  <view class="grid-line grid-line-v1"></view>
+  <view class="grid-line grid-line-v2"></view>
+
+  <!-- 标题区域 -->
+  <view class="title-section">
+    <view class="logo-ring">
+      <view class="logo-inner">
+        <text class="logo-text">Q</text>
+      </view>
+    </view>
+    <text class="main-title">智能工具平台</text>
+    <text class="sub-title">Smart Utility Platform</text>
+    <view class="divider-line"></view>
+  </view>
+
+  <!-- 功能按钮区域 -->
+  <view class="btn-section">
+    <view class="func-card" bindtap="goFootball" hover-class="func-card-hover">
+      <view class="card-glow"></view>
+      <view class="icon-wrapper football-icon">
+        <text class="icon-emoji">⚽</text>
+      </view>
+      <view class="card-info">
+        <text class="card-title">足球信息</text>
+        <text class="card-desc">竞彩数据 / 赔率分析</text>
+      </view>
+      <view class="card-arrow">
+        <text class="arrow-icon">{{'>'}}</text>
+      </view>
+    </view>
+
+    <view class="func-card" bindtap="goHCSA" hover-class="func-card-hover">
+      <view class="card-glow"></view>
+      <view class="icon-wrapper hcsa-icon">
+        <view class="hcsa-badge">
+          <text class="hcsa-text-h">H</text>
+          <text class="hcsa-text-sub">CSA</text>
+        </view>
+      </view>
+      <view class="card-info">
+        <text class="card-title">HCSA认证题库</text>
+        <text class="card-desc">在线练习 / 答案解析</text>
+      </view>
+      <view class="card-arrow">
+        <text class="arrow-icon">{{'>'}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部信息 -->
+  <view class="footer-section">
+    <text class="footer-text">Powered by Cloud Development</text>
+    <text class="version-text">v1.0</text>
+  </view>
+</view>

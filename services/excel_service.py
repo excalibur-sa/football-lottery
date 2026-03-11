@@ -341,14 +341,20 @@ def _write_detail_sheet(wb, match, index):
         # 对齐规则：
         # 第1行(r=0): 胜/负差取 HAD[1]，双平差取 HAD[0]/HHAD[0]（保持特殊对齐）
         # 后续行: 按时间戳匹配HAD和HHAD，无匹配时使用最近的HAD平数据
-        last_had_draw = had_history[-1].get("draw", 0) or 0
+        # 所有结果行最终按时间排序输出
         used_had_for_wl = set()  # 记录已用于胜/负差的HAD索引
         had_dd_covered = set()   # 记录已在HHAD循环中计算了双平差的HAD索引
         last_used_had_draw = had_history[0].get("draw", 0) or 0  # 记录最近使用的HAD平数据
         
+        # 收集所有差值行，最后按时间排序写入Excel
+        diff_rows = []  # 每项: (sort_time, {col1, col2, col3, col4, col5, col6})
+        
         total_rows = len(hhad_history)
         
         for r in range(total_rows):
+            row_data = {}
+            sort_time = parse_timestamp(hhad_history[r])
+            
             if r == 0:
                 # 第1行特殊对齐：胜/负差取 HAD[1]，双平差取 HAD[0]/HHAD[0]
                 if len(had_history) >= 2:
@@ -356,16 +362,16 @@ def _write_detail_sheet(wb, match, index):
                     current_lose = had_history[1].get("lose", 0) or 0
                     win_diff = round(current_win - base_win, 2)
                     lose_diff = round(current_lose - base_lose, 2)
-                    ws.cell(row=row, column=1, value=win_diff)
-                    ws.cell(row=row, column=2, value=lose_diff)
-                    ws.cell(row=row, column=4, value="正" if win_diff >= 0 else "负")
-                    ws.cell(row=row, column=5, value="正" if lose_diff >= 0 else "负")
+                    row_data[1] = win_diff
+                    row_data[2] = lose_diff
+                    row_data[4] = "正" if win_diff >= 0 else "负"
+                    row_data[5] = "正" if lose_diff >= 0 else "负"
                     used_had_for_wl.add(1)
                 else:
-                    ws.cell(row=row, column=1, value="-")
-                    ws.cell(row=row, column=2, value="-")
-                    ws.cell(row=row, column=4, value="-")
-                    ws.cell(row=row, column=5, value="-")
+                    row_data[1] = "-"
+                    row_data[2] = "-"
+                    row_data[4] = "-"
+                    row_data[5] = "-"
                 
                 cur_had_draw = had_history[0].get("draw", 0) or 0
                 cur_hhad_draw = hhad_history[0].get("draw", 0) or 0
@@ -381,20 +387,20 @@ def _write_detail_sheet(wb, match, index):
                     current_lose = had_history[matched_had_idx].get("lose", 0) or 0
                     win_diff = round(current_win - base_win, 2)
                     lose_diff = round(current_lose - base_lose, 2)
-                    ws.cell(row=row, column=1, value=win_diff)
-                    ws.cell(row=row, column=2, value=lose_diff)
-                    ws.cell(row=row, column=4, value="正" if win_diff >= 0 else "负")
-                    ws.cell(row=row, column=5, value="正" if lose_diff >= 0 else "负")
+                    row_data[1] = win_diff
+                    row_data[2] = lose_diff
+                    row_data[4] = "正" if win_diff >= 0 else "负"
+                    row_data[5] = "正" if lose_diff >= 0 else "负"
                     used_had_for_wl.add(matched_had_idx)
                     cur_had_draw = had_history[matched_had_idx].get("draw", 0) or 0
                     had_dd_covered.add(matched_had_idx)
                     last_used_had_draw = cur_had_draw
                 else:
                     # 无匹配或已使用，胜/负差显示"-"
-                    ws.cell(row=row, column=1, value="-")
-                    ws.cell(row=row, column=2, value="-")
-                    ws.cell(row=row, column=4, value="-")
-                    ws.cell(row=row, column=5, value="-")
+                    row_data[1] = "-"
+                    row_data[2] = "-"
+                    row_data[4] = "-"
+                    row_data[5] = "-"
                     # 时间匹配到的HAD已用于胜/负差，标记其双平差也已覆盖
                     if matched_had_idx is not None:
                         had_dd_covered.add(matched_had_idx)
@@ -417,35 +423,36 @@ def _write_detail_sheet(wb, match, index):
                 cur_hhad_draw = hhad_history[r].get("draw", 0) or 0
             
             double_draw_diff = round(cur_hhad_draw - cur_had_draw, 2) if cur_hhad_draw and cur_had_draw else 0
-            ws.cell(row=row, column=3, value=double_draw_diff)
-            ws.cell(row=row, column=6, value="正" if double_draw_diff >= 0 else "负")
+            row_data[3] = double_draw_diff
+            row_data[6] = "正" if double_draw_diff >= 0 else "负"
             
-            _apply_data_style(ws, row, 1, 6, is_alt=(r % 2 == 0))
-            row += 1
+            diff_rows.append((sort_time, row_data))
         
         # 补充未完整覆盖的HAD记录
-        row_idx = len(hhad_history)
         for had_idx in range(1, len(had_history)):
             # 已在HHAD循环中同时覆盖了胜/负差和双平差的，跳过
             if had_idx in used_had_for_wl and had_idx in had_dd_covered:
                 continue
             
+            row_data = {}
+            sort_time = parse_timestamp(had_history[had_idx])
+            
             if had_idx in used_had_for_wl:
                 # 胜/负差已在HHAD循环显示，仅需双平差独占一行
-                ws.cell(row=row, column=1, value="-")
-                ws.cell(row=row, column=2, value="-")
-                ws.cell(row=row, column=4, value="-")
-                ws.cell(row=row, column=5, value="-")
+                row_data[1] = "-"
+                row_data[2] = "-"
+                row_data[4] = "-"
+                row_data[5] = "-"
             else:
                 # 完整行：胜/负差 + 双平差
                 current_win = had_history[had_idx].get("win", 0) or 0
                 current_lose = had_history[had_idx].get("lose", 0) or 0
                 win_diff = round(current_win - base_win, 2)
                 lose_diff = round(current_lose - base_lose, 2)
-                ws.cell(row=row, column=1, value=win_diff)
-                ws.cell(row=row, column=2, value=lose_diff)
-                ws.cell(row=row, column=4, value="正" if win_diff >= 0 else "负")
-                ws.cell(row=row, column=5, value="正" if lose_diff >= 0 else "负")
+                row_data[1] = win_diff
+                row_data[2] = lose_diff
+                row_data[4] = "正" if win_diff >= 0 else "负"
+                row_data[5] = "正" if lose_diff >= 0 else "负"
             
             # 双平差：向前查找最近的HHAD让平赔率
             had_dt = parse_full_datetime(had_history[had_idx])
@@ -465,15 +472,23 @@ def _write_detail_sheet(wb, match, index):
             if nearest_hhad_draw is not None:
                 cur_had_draw = had_history[had_idx].get("draw", 0) or 0
                 double_draw_diff = round(nearest_hhad_draw - cur_had_draw, 2)
-                ws.cell(row=row, column=3, value=double_draw_diff)
-                ws.cell(row=row, column=6, value="正" if double_draw_diff >= 0 else "负")
+                row_data[3] = double_draw_diff
+                row_data[6] = "正" if double_draw_diff >= 0 else "负"
             else:
-                ws.cell(row=row, column=3, value="-")
-                ws.cell(row=row, column=6, value="-")
+                row_data[3] = "-"
+                row_data[6] = "-"
             
-            _apply_data_style(ws, row, 1, 6, is_alt=(row_idx % 2 == 0))
+            diff_rows.append((sort_time, row_data))
+        
+        # 按时间排序，确保补充行插入到正确的时间位置
+        diff_rows.sort(key=lambda x: x[0])
+        
+        # 写入排序后的差值行到Excel
+        for idx, (sort_time, row_data) in enumerate(diff_rows):
+            for col, val in row_data.items():
+                ws.cell(row=row, column=col, value=val)
+            _apply_data_style(ws, row, 1, 6, is_alt=(idx % 2 == 0))
             row += 1
-            row_idx += 1
 
     elif len(hhad_history) >= 2:
         # 无胜平负指数更新，仅用HHAD让平数据做差：HHAD[i].draw - HHAD[0].draw

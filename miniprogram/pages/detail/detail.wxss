@@ -91,7 +91,9 @@
 .history-list {
   border: 1rpx solid #ddd;
   border-radius: 8rpx;
-  overflow: hidden;
+  overflow: visible;
+  overflow-y: visible;
+  max-height: none;
 }
 
 .history-header {
@@ -114,8 +116,8 @@
   border-right: none;
 }
 
-.history-scroll {
-  max-height: 400rpx;
+.history-body {
+  /* 移除高度限制，完整展示所有历史记录 */
 }
 
 .history-item {

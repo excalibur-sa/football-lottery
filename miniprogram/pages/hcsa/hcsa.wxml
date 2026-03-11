@@ -1,0 +1,103 @@
+<view class="hcsa-container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <view class="header-badge">
+      <text class="badge-h">H</text>
+      <text class="badge-csa">CSA</text>
+    </view>
+    <view class="header-info">
+      <text class="header-title">HCSA认证题库</text>
+      <text class="header-stat">共 {{totalCount}} 题 | 已作答 {{answeredCount}} 题</text>
+    </view>
+  </view>
+
+  <!-- 分类标签 -->
+  <scroll-view class="category-scroll" scroll-x="true">
+    <view class="category-bar">
+      <view 
+        wx:for="{{categories}}" 
+        wx:key="id" 
+        class="cat-tag {{currentCategory === item.id ? 'cat-tag-active' : ''}}"
+        bindtap="switchCategory"
+        data-cat="{{item.id}}"
+      >
+        <text>{{item.name}}</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 题目列表 -->
+  <view class="question-list">
+    <block wx:for="{{questions}}" wx:key="id">
+      <view class="question-card" wx:if="{{currentCategory === 'all' || item.category === currentCategory}}">
+        <!-- 题目头部 -->
+        <view class="q-header">
+          <view class="q-num">{{item.id}}</view>
+          <view class="q-type-tag {{item.type === 'multiple' ? 'q-type-multi' : 'q-type-single'}}">
+            {{item.type === 'multiple' ? '多选' : '单选'}}
+          </view>
+        </view>
+
+        <!-- 题目内容 -->
+        <view class="q-body">
+          <text class="q-text">{{item.question}}</text>
+        </view>
+
+        <!-- 选项区域 - 单选 -->
+        <radio-group 
+          wx:if="{{item.type === 'single'}}" 
+          class="options-group" 
+          bindchange="onRadioChange"
+          data-qindex="{{item.index}}"
+        >
+          <label 
+            wx:for="{{item.options}}" 
+            wx:for-item="opt" 
+            wx:key="label"
+            class="option-item {{item.showAnswer && opt.isCorrect ? 'option-correct' : ''}} {{item.showAnswer && opt.checked && !opt.isCorrect ? 'option-wrong' : ''}}"
+          >
+            <radio value="{{opt.label}}" checked="{{opt.checked}}" color="#00d4ff" />
+            <text class="option-label">{{opt.label}}.</text>
+            <text class="option-text">{{opt.text}}</text>
+          </label>
+        </radio-group>
+
+        <!-- 选项区域 - 多选 -->
+        <checkbox-group 
+          wx:if="{{item.type === 'multiple'}}" 
+          class="options-group" 
+          bindchange="onCheckboxChange"
+          data-qindex="{{item.index}}"
+        >
+          <label 
+            wx:for="{{item.options}}" 
+            wx:for-item="opt" 
+            wx:key="label"
+            class="option-item {{item.showAnswer && opt.isCorrect ? 'option-correct' : ''}} {{item.showAnswer && opt.checked && !opt.isCorrect ? 'option-wrong' : ''}}"
+          >
+            <checkbox value="{{opt.label}}" checked="{{opt.checked}}" color="#00d4ff" />
+            <text class="option-label">{{opt.label}}.</text>
+            <text class="option-text">{{opt.text}}</text>
+          </label>
+        </checkbox-group>
+
+        <!-- 答案按钮与解析 -->
+        <view class="answer-section">
+          <view class="show-answer-btn" bindtap="toggleAnswer" data-qindex="{{item.index}}">
+            <text>{{item.showAnswer ? '隐藏答案' : '显示答案'}}</text>
+          </view>
+          <view class="answer-detail" wx:if="{{item.showAnswer}}">
+            <view class="correct-answer">
+              <text class="answer-label">正确答案：</text>
+              <text class="answer-value">{{item.answer.join('、')}}</text>
+            </view>
+            <view class="explanation">
+              <text class="explain-label">解析：</text>
+              <text class="explain-text">{{item.explanation}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+  </view>
+</view>

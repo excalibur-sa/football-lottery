@@ -87,14 +87,14 @@
           <text class="history-col">平</text>
           <text class="history-col">负</text>
         </view>
-        <scroll-view class="history-scroll" scroll-y>
+        <view class="history-body">
           <view class="history-item" wx:for="{{hadHistory}}" wx:key="index">
             <text class="history-col">{{item.short_time}}</text>
             <text class="history-col">{{item.win}}</text>
             <text class="history-col">{{item.draw}}</text>
             <text class="history-col">{{item.lose}}</text>
           </view>
-        </scroll-view>
+        </view>
       </view>
     </view>
 
@@ -110,14 +110,14 @@
           <text class="history-col">让平</text>
           <text class="history-col">让负</text>
         </view>
-        <scroll-view class="history-scroll" scroll-y>
+        <view class="history-body">
           <view class="history-item" wx:for="{{hhadHistory}}" wx:key="index">
             <text class="history-col">{{item.short_time}}</text>
             <text class="history-col">{{item.win}}</text>
             <text class="history-col">{{item.draw}}</text>
             <text class="history-col">{{item.lose}}</text>
           </view>
-        </scroll-view>
+        </view>
       </view>
     </view>
 

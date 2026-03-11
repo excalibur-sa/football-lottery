@@ -326,7 +326,8 @@ function calculateDiffAnalysis(hadHistory, hhadHistory) {
         winDiff, loseDiff, ddDiff,
         winDiffStr, loseDiffStr, ddDiffStr,
         winSign, loseSign, ddSign,
-        isNegative: winDiff < 0 || loseDiff < 0 || ddDiff < 0
+        isNegative: winDiff < 0 || loseDiff < 0 || ddDiff < 0,
+        _sortTime: (hhadHistory[r]?.update_date || '') + 'T' + (hhadHistory[r]?.update_time || '')
       });
     }
 
@@ -380,7 +381,8 @@ function calculateDiffAnalysis(hadHistory, hhadHistory) {
         winDiff, loseDiff, ddDiff,
         winDiffStr, loseDiffStr, ddDiffStr,
         winSign, loseSign, ddSign,
-        isNegative: winDiff < 0 || loseDiff < 0 || ddDiff < 0
+        isNegative: winDiff < 0 || loseDiff < 0 || ddDiff < 0,
+        _sortTime: (hadHistory[hadIdx]?.update_date || '') + 'T' + (hadHistory[hadIdx]?.update_time || '')
       });
     }
   } else {
@@ -400,6 +402,16 @@ function calculateDiffAnalysis(hadHistory, hhadHistory) {
       });
     }
   }
+
+  // 按时间排序，确保补充行插入到正确位置
+  diffResults.sort((a, b) => {
+    const ta = a._sortTime || '';
+    const tb = b._sortTime || '';
+    return ta.localeCompare(tb);
+  });
+
+  // 清理排序用的临时字段
+  diffResults.forEach(r => delete r._sortTime);
 
   return diffResults;
 }
