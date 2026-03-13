@@ -62,7 +62,7 @@
         <view class="divider-line"></view>
       </view>
 
-      <view class="match-item">
+      <view class="match-item {{item.checked ? 'match-item-checked' : ''}}">
         <view class="match-header">
           <view class="match-checkbox" bindtap="onCheckboxTap" data-id="{{item.match_id}}">
             <view class="custom-checkbox {{item.checked ? 'custom-checkbox-checked' : ''}}">

@@ -58,6 +58,13 @@
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
+  border-left: 6rpx solid transparent;
+}
+
+.match-item-checked {
+  background: rgba(0, 122, 255, 0.08);
+  border-left-color: #007AFF;
+  box-shadow: 0 2rpx 12rpx rgba(0, 122, 255, 0.15);
 }
 
 .match-header {
@@ -73,26 +80,29 @@
 }
 
 .custom-checkbox {
-  width: 40rpx;
-  height: 40rpx;
-  border: 2rpx solid #ccc;
-  border-radius: 6rpx;
+  width: 44rpx;
+  height: 44rpx;
+  border: 3rpx solid #ccc;
+  border-radius: 8rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
+  transition: all 0.15s ease;
 }
 
 .custom-checkbox-checked {
   background-color: #007AFF;
   border-color: #007AFF;
+  box-shadow: 0 2rpx 8rpx rgba(0, 122, 255, 0.4);
 }
 
 .checkmark {
   color: white;
-  font-size: 28rpx;
-  font-weight: bold;
+  font-size: 34rpx;
+  font-weight: 900;
   line-height: 1;
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.2);
 }
 
 .match-content {

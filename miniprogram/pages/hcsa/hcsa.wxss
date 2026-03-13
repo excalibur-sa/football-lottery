@@ -171,6 +171,27 @@ page {
   margin-bottom: 24rpx;
 }
 
+/* 覆盖原生 checkbox 样式，使勾选更明显 */
+checkbox .wx-checkbox-input {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 8rpx;
+  border: 3rpx solid rgba(255, 255, 255, 0.25);
+  background: transparent;
+}
+
+checkbox .wx-checkbox-input.wx-checkbox-input-checked {
+  background: #00d4ff;
+  border-color: #00d4ff;
+}
+
+checkbox .wx-checkbox-input.wx-checkbox-input-checked::before {
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 900;
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.3);
+}
+
 .option-item {
   display: flex;
   align-items: flex-start;
